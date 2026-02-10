@@ -1,0 +1,90 @@
+# Docker Compose for Clone-it Backend
+# Author: Srikanth Thiyagarajan
+
+version: '3.8'
+
+services:
+  # Main Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clone-it-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8000
+    volumes:
+      # Mount logs directory for persistent logging
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - clone-it-network
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 512M
+
+  # PostgreSQL Database (optional - for local development)
+  postgres:
+    image: postgres:15-alpine
+    container_name: clone-it-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: clone_it_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clone-it-network
+
+networks:
+  clone-it-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+# ============================================================================
+# Usage:
+#
+# Start all services:
+#   docker-compose up -d
+#
+# View logs:
+#   docker-compose logs -f backend
+#
+# Stop all services:
+#   docker-compose down
+#
+# Rebuild and restart:
+#   docker-compose up -d --build
+#
+# Run with production database (AWS RDS):
+#   Comment out the postgres service and depends_on in backend service
+#   Ensure DATABASE_URL in .env points to AWS RDS
+# ============================================================================

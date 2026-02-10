@@ -1,0 +1,75 @@
+services:
+  # Main API Service
+  - type: web
+    name: stellantis-hygiene-api
+    runtime: python
+    region: oregon  # Change to your preferred region
+    plan: free  # Change to 'starter' or higher for production
+    branch: main  # Your GitHub branch
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT --workers 4
+    envVars:
+      # === AWS Configuration ===
+      - key: AWS_ACCESS_KEY_ID
+        sync: false  # Set manually in Render dashboard
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: AWS_REGION
+        value: us-east-1
+      - key: S3_BUCKET
+        value: stellantis-hygiene-images
+      
+      # === Vision Provider ===
+      - key: VISION_PROVIDER
+        value: fallback  # AWS Rekognition with Gemini fallback
+      
+      # === Gemini Configuration ===
+      - key: GEMINI_API_KEY
+        sync: false  # Set manually in Render dashboard
+      
+      # === Business Rules ===
+      - key: CONFIDENCE_THRESHOLD
+        value: 80.0
+      - key: MAX_LABELS
+        value: 50
+      
+      # === Authentication ===
+      - key: AUTH_ENABLED
+        value: false  # Set to 'true' for production
+      - key: SECRET_KEY
+        generateValue: true  # Render auto-generates a secure key
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      
+      # === Database ===
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres  # Links to PostgreSQL database below
+          property: connectionString
+      
+      # === Logging ===
+      - key: LOG_LEVEL
+        value: INFO
+      
+      # === Python Configuration ===
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PYTHONDONTWRITEBYTECODE
+        value: 1
+
+    # Health check endpoint
+    healthCheckPath: /health
+    
+    # Auto-deploy on git push
+    autoDeploy: true
+
+# PostgreSQL Database (Optional - only if you want RDS alternative)
+# Comment out if using AWS RDS
+# databases:
+#   - name: postgres
+#     databaseName: stellantis_hygiene_db
+#     user: stellantis_user
+#     plan: free  # Change to 'starter' or higher for production
+#     region: oregon

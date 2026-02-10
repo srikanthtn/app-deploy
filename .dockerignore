@@ -1,0 +1,79 @@
+# Docker Ignore File
+# Excludes files from Docker build context for faster builds
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (not needed in image)
+*.md
+docs/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Test files (exclude from production)
+tests/
+test_*.py
+*_test.py
+
+# Scripts not needed in container
+scripts/setup_aws_resources.py
+scripts/verify_aws.py
+scripts/test_*.py
+
+# Development only
+requirements-dev.txt
